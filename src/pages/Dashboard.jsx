@@ -1,26 +1,74 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import AddStudent from '../components/AddStudent';
 import FilterStudents from '../components/FilterStudents';
-import StudentList from '../components/StudentList';
-import { motion } from 'framer-motion';
+import StudentDetails from '../components/StudentDetails';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const Dashboard = ({ students, addStudent, deleteStudent, updateStudentFee }) => {
+const Dashboard = ({ addStudent, deleteStudent, updateStudentFee, updateStudent }) => {
   const [filter, setFilter] = useState({
     admissionNumber: '',
     grade: '',
-    feeStatus: ''
   });
 
-  const filteredStudents = students.filter(student => {
-    return (
-      (filter.admissionNumber === '' || 
-       student.admissionNumber.includes(filter.admissionNumber)) &&
-      (filter.grade === '' || 
-       student.grade === filter.grade) &&
-      (filter.feeStatus === '' || 
-       student.feeStatus === filter.feeStatus)
-    );
-  });
+  const [students, setStudents] = useState([]);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/students");
+        const data = await response.json();
+        const studentsWithStatus = data.map(student => ({
+          ...student,
+          feeStatus: student.amountPaid === 50000 ? 'paid' : student.amountPaid > 0 ? 'partial' : 'pending'
+        }));
+        setStudents(studentsWithStatus);
+        setFilteredStudents(studentsWithStatus);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  const handleSearch = () => {
+    const { admissionNumber, grade } = filter;
+    let results = students;
+
+    if (admissionNumber) {
+      results = results.filter(student => 
+        student.admissionNumber.includes(admissionNumber)
+      );
+    }
+
+    if (grade) {
+      results = results.filter(student => student.grade === grade);
+    }
+
+    setFilteredStudents(results);
+
+    if (results.length === 1) {
+      setSelectedStudent(results[0]);
+    } else {
+      setSelectedStudent(null);
+    }
+  };
+
+  const clearFilters = () => {
+    setFilter({
+      admissionNumber: '',
+      grade: '',
+    });
+    setFilteredStudents(students);
+    setSelectedStudent(null);
+  };
+
+  // Dummy usage to prevent ESLint unused warnings (remove when used in UI)
+  console.log(filteredStudents, handleSearch, clearFilters);
 
   return (
     <motion.div
@@ -36,29 +84,51 @@ const Dashboard = ({ students, addStudent, deleteStudent, updateStudentFee }) =>
           whileHover={{ scale: 1.02 }}
           className="card add-student-card"
         >
-          <AddStudent addStudent={addStudent} />
+          <AddStudent
+            addStudent={(student) => setStudents([...students, student])}
+            updateStudent={(updated) =>
+              setStudents((prev) =>
+                prev.map((s) => (s.id === updated.id ? updated : s))
+              )
+            }
+            selectedStudent={selectedStudent}
+            setSelectedStudent={setSelectedStudent}
+          />
         </motion.div>
         
         <motion.div 
           whileHover={{ scale: 1.02 }}
           className="card filter-card"
         >
-          <FilterStudents filter={filter} setFilter={setFilter} />
-        </motion.div>
-        
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="card student-list-card"
-        >
-          <StudentList 
-            students={filteredStudents} 
-            deleteStudent={deleteStudent}
-            updateStudentFee={updateStudentFee}
+          <FilterStudents 
+            students={students || []} 
+            setFilter={setFilter} 
+            filter={filter} 
+            setSelectedStudent={setSelectedStudent}
           />
         </motion.div>
+
+        {selectedStudent && (
+          <StudentDetails 
+            student={selectedStudent} 
+            setSelectedStudent={setSelectedStudent}
+            updateStudentFee={updateStudentFee}
+          />
+        )}
       </div>
+
+      <ToastContainer 
+        position="top-center" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+        theme="colored"
+      />
     </motion.div>
   );
 };

@@ -14,9 +14,15 @@ const Navbar = () => {
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Link to="/" className="nav-link">Dashboard</Link>
         </motion.div>
+
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Link to="/studentlist" className="nav-link">Student List</Link>
+        </motion.div>
+
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Link to="/reports" className="nav-link">Reports</Link>
         </motion.div>
+
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Link to="/settings" className="nav-link">Settings</Link>
         </motion.div>

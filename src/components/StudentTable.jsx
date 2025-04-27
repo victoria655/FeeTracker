@@ -1,15 +1,17 @@
 import { motion } from 'framer-motion';
 import FeeStatusButtons from './FeeStatusButtons';
 
-const StudentTable = ({ students, handleDelete, updateStudentFee }) => {
+const StudentTable = ({ students, handleDelete, updateStudentFee, calculateDeficit, blurred }) => {
   return (
-    <div className="table-container">
+    <div className={`table-container ${blurred ? 'blurred' : ''}`}>
       <table>
         <thead>
           <tr>
             <th>Name</th>
             <th>Admission No.</th>
             <th>Grade</th>
+            <th>Amount Paid</th>
+            <th>Deficit</th>
             <th>Fee Status</th>
             <th>Actions</th>
           </tr>
@@ -26,6 +28,20 @@ const StudentTable = ({ students, handleDelete, updateStudentFee }) => {
               <td>{student.name}</td>
               <td>{student.admissionNumber}</td>
               <td>{student.grade}</td>
+              
+              {/* Amount Paid */}
+              <td>
+                <input
+                  type="number"
+                  value={student.amountPaid || 0}
+                  onChange={(e) => updateStudentFee(student.id, parseFloat(e.target.value))}
+                  placeholder="50,000"
+                />
+              </td>
+              
+              {/* Deficit Calculation */}
+              <td>{calculateDeficit(student.amountPaid || 0)}</td>
+              
               <td>
                 <FeeStatusButtons 
                   student={student} 

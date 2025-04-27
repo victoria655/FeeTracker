@@ -1,6 +1,24 @@
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 const Settings = () => {
+  // State for Date of the Year
+  const [dateOfYear, setDateOfYear] = useState(new Date());
+  
+  // Function to update date every 24 hours
+  const updateDate = () => {
+    const newDate = new Date();
+    setDateOfYear(newDate);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateDate();
+    }, 24 * 60 * 60 * 1000); // 24 hours in milliseconds
+
+    return () => clearInterval(interval); // Clear interval on component unmount
+  }, []);
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -35,6 +53,12 @@ const Settings = () => {
         <div className="setting-item">
           <label>Reset Data</label>
           <button className="reset-button">Clear All Data</button>
+        </div>
+
+        {/* Date of the Year Section */}
+        <div className="setting-item">
+          <label>Date of the Year</label>
+          <div>{dateOfYear.toDateString()}</div>
         </div>
       </div>
     </motion.div>
